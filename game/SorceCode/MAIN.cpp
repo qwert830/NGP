@@ -7,6 +7,7 @@
 using namespace std;
 
 
+
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 void TimerFunction(int value);
@@ -126,6 +127,7 @@ void Mouse(int button, int state, int x, int y) {
 		}
 	}
 }
+
 void MousePos(int x, int y) {
 	if (GState == PLAY) {
 		PC.setDirX(x);
