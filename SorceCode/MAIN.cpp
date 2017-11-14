@@ -1,4 +1,4 @@
-#include <glut.h>
+#include "../glut/glut.h"
 #define _USE_MATH_DEFINES
 #include <list>
 #include <vector>

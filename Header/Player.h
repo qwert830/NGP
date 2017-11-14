@@ -1,5 +1,5 @@
 #pragma once
-#include <glut.h>
+#include "../glut/glut.h"
 #include <list>
 #define _USE_MATH_DEFINES
 #include <math.h>
