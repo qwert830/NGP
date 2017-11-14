@@ -14,8 +14,6 @@ class Projectile
 public:
 	Projectile(const float& a, const float& b, const float& c, const float& d);
 
-	Projectile(const Projectile & proj);
-
 	int getDmg();
 
 	void move();

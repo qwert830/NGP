@@ -30,6 +30,32 @@ void Player::setCondition(const int& hp, const int& sta, const int& cdn) {
 	atkCool = cdn;
 }
 
+float Player::getX() const {
+	return X;
+}
+float Player::getY() const {
+	return Y;
+}
+float Player::getDirX() const {
+	return DirX;
+}
+float Player::getDirY() const {
+	return DirY;
+}
+
+void Player::setX(const float& sx) {
+	X = sx;
+}
+void Player::setY(const float& sy) {
+	Y = sy;
+}
+void Player::setDirX(const float& sx) {
+	DirX = sx;
+}
+void Player::setDirY(const float& sy) {
+	DirY = sy;
+}
+
 int Player::getStatus() const {
 	return status;
 }
@@ -96,9 +122,9 @@ void Player::draw() {
 	}
 }
 
-void Player::update(const bool Lclk, const bool Rclk) {
+void Player::update(const float& time,const bool Lclk, const bool Rclk) {
 	if (atkCool > 0)
-		--atkCool;
+		atkCool -= time;
 	if (Rclk) {
 		move();
 	}

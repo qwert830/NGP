@@ -2,10 +2,10 @@
 
 
 Projectile::Projectile(const float& a, const float& b, const float& c, const float& d)
-	: X(a), Y(b), DirX(c), DirY(d), TempX(a), TempY(b),
+	: X(a), Y(b), DirX(c), DirY(d),
 	speed(3), animation(0), damage(10) {
-	TempX = cos(atan2f(DirY - TempY, DirX - TempX));
-	TempY = sin(atan2f(DirY - TempY, DirX - TempX));
+	TempX = cos(atan2f(DirY - X, DirX - X));
+	TempY = sin(atan2f(DirY - Y, DirX - Y));
 }
 
 int Projectile::getDmg() {

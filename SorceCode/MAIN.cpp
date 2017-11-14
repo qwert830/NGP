@@ -17,6 +17,7 @@ void MousePos(int x, int y);
 
 
 Player PC(100, WindowHei / 2, 0, 0, GREEN);
+list<Projectile> p;
 
 bool RDragCheck, LDragCheck;
 int GState;
@@ -61,6 +62,9 @@ GLvoid drawScene(GLvoid) {
 	break;
 	case PLAY:
 		PC.draw();
+		for (auto& d : p) {
+			d.draw();
+		}
 		break;
 	}
 	glutSwapBuffers();
@@ -75,7 +79,7 @@ void TimerFunction(int value) {
 	switch (GState)
 	{
 	case PLAY:
-		PC.update(LDragCheck, RDragCheck);
+		PC.update(0.01, LDragCheck, RDragCheck);
 
 		if (PC.getStatus() == DEAD) {
 			GState = END;
@@ -124,14 +128,14 @@ void Mouse(int button, int state, int x, int y) {
 }
 void MousePos(int x, int y) {
 	if (GState == PLAY) {
-		//PC.setDirX(x);
-		//PC.setDirY(y);
+		PC.setDirX(x);
+		PC.setDirY(y);
 	}
 }
 
 void Drag(int x, int y) {
 	if (GState == PLAY) {
-		//PC.setDirX(x);
-		//PC.setDirY(y);
+		PC.setDirX(x);
+		PC.setDirY(y);
 	}
 }
