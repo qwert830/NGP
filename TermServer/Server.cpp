@@ -8,7 +8,7 @@ using namespace std;
 
 list<HANDLE> clientThread;
 int gameStatus = 0; // 0 대기상태 1 게임상태 2 게임종료
-int PlayerID = 0;
+int playerID = 0;
 Character Player[MAX_CLIENT];
 
 // 소켓 함수 오류 출력 후 종료
@@ -56,22 +56,51 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	return (len - left);
 }
 
+void Decoding();
+void CreateData();
+void ServerInit();
+void CreateBullet();
+void CollisionCheck();
+
+DWORD WINAPI UpdateThread(LPVOID arg);
+DWORD WINAPI ClientThread(LPVOID arg);
+
+DWORD WINAPI UpdateThread(LPVOID arg)
+{	
+	return 0;
+}
+
 DWORD WINAPI ClientThread(LPVOID arg)
 {
 	SOCKET client_sock = (SOCKET)arg;
+	ClientAction CA;
+	ServerAction SA;
 	int retval;
 	char buf[BUFSIZE + 1];
-	int id = PlayerID++;
-	
+	int id = playerID++;
+	ZeroMemory(buf, BUFSIZE);
+	/*
+
+	업데이트 함수로
+
 	if (clientThread.size() == MAX_CLIENT)
 	{
 		send(client_sock, (char*)gameStatus, sizeof(int), 0);
+		send(client_sock, (char*)Player, sizeof(Character), 0);
 	}
+	*/
+
+
 	//통신부분
 	while (1)
 	{
 		recvn(client_sock, buf, BUFSIZE, 0);
-
+		memcpy(&CA, buf, sizeof(ClientAction));
+		ZeroMemory(buf, BUFSIZE);
+		Player[id].dx = CA.mx;
+		Player[id].dy = CA.my;
+		Player[id].leftClick = CA.leftClick;
+		Player[id].rightClick = CA.rightClick;
 		/* 
 			이벤트 처리
 		*/
@@ -81,6 +110,7 @@ DWORD WINAPI ClientThread(LPVOID arg)
 		// 데이터 전송
 
 	}
+	return 0;
 }
 
 int main(int argc, char *argv[])
