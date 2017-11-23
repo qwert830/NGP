@@ -8,3 +8,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <list>
+
+#define BUFSIZE    1000
+#define MAX_CLIENT 2

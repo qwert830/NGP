@@ -3,9 +3,13 @@
 #include "ServerClass.h"
 
 #define SERVERPORT 9000
-#define BUFSIZE    100000
 
 using namespace std;
+
+list<HANDLE> clientThread;
+int gameStatus = 0; // 0 대기상태 1 게임상태 2 게임종료
+int PlayerID = 0;
+Character Player[MAX_CLIENT];
 
 // 소켓 함수 오류 출력 후 종료
 void err_quit(char *msg)
@@ -52,6 +56,33 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	return (len - left);
 }
 
+DWORD WINAPI ClientThread(LPVOID arg)
+{
+	SOCKET client_sock = (SOCKET)arg;
+	int retval;
+	char buf[BUFSIZE + 1];
+	int id = PlayerID++;
+	
+	if (clientThread.size() == MAX_CLIENT)
+	{
+		send(client_sock, (char*)gameStatus, sizeof(int), 0);
+	}
+	//통신부분
+	while (1)
+	{
+		recvn(client_sock, buf, BUFSIZE, 0);
+
+		/* 
+			이벤트 처리
+		*/
+
+		// 업데이트
+		
+		// 데이터 전송
+
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int retval;
@@ -82,14 +113,9 @@ int main(int argc, char *argv[])
 	SOCKET client_sock;
 	SOCKADDR_IN clientaddr;
 	int addrlen;
-	char buf[BUFSIZE + 1];
-	int len;
-	int recvLen = 0;
-	char name[1000];
 
-	memset(buf, 0, sizeof(buf));
-
-	while (1) {
+	while (1)
+	{
 		// accept()
 		addrlen = sizeof(clientaddr);
 		client_sock = accept(listen_sock, (SOCKADDR *)&clientaddr, &addrlen);
@@ -97,65 +123,18 @@ int main(int argc, char *argv[])
 			err_display("accept()");
 			break;
 		}
-
 		// 접속한 클라이언트 정보 출력
 		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
 			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
-		// 클라이언트와 데이터 통신
-		while (1) {
-			//데이터 받기(고정 길이) - 이름
-			retval = recvn(client_sock, name, sizeof(string), 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("recv()");
-				break;
-			}
-			else if (retval == 0)
-				break;
-
-			// 데이터 받기(고정 길이)
-			retval = recvn(client_sock, (char *)&len, sizeof(int), 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("recv()");
-				break;
-			}
-			else if (retval == 0)
-				break;
-
-			// 데이터 받기(가변 길이)
-			fstream saveFile;
-			saveFile.open(name, ios::out | ios::binary);
-			while (true)
-			{
-				retval = recvn(client_sock, buf, min(BUFSIZE, len - recvLen), 0);
-				if (retval == SOCKET_ERROR) {
-					err_display("recv()");
-					break;
-				}
-				else if (retval == 0)
-					break;
-
-				saveFile.write(buf, retval);
-				recvLen += retval;
-
-				cout << "수신률 : " << ((double)recvLen / (double)len) * 100 << "% 받은데이터 :" << recvLen << " 총 데이터 :" << len << endl;
-				if (recvLen == len)
-					break;
-			}
-			saveFile.close();
-
-			// 받은 데이터 출력
-			cout << "받은 파일이름 : " << name << endl;
-			cout << "받은 데이터크기 : " << recvLen << endl;
+		if (clientThread.size() < MAX_CLIENT) // 최대 클라이언트 제한
+		{
+			clientThread.push_back(new HANDLE(CreateThread(NULL, 0, ClientThread, (LPVOID)client_sock, 0, NULL)));
+			if (clientThread.back() == NULL) { closesocket(client_sock); }
 		}
-		// closesocket()
-		closesocket(client_sock);
-		recvLen = 0;
-		memset(name, 0, sizeof(name));
-
-		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
-			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 	}
+	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+		inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 	// closesocket()
 	closesocket(listen_sock);
 
