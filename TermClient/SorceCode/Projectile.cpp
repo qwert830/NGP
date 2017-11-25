@@ -1,5 +1,10 @@
 #include "../Header/Projectile.h"
 
+Projectile::Projectile()
+	: x(0), y(0), dx(0), dy(0), animation(0)
+{
+}
+
 Projectile::Projectile(const float& a, const float& b, const float& c, const float& d)
 	: x(a), y(b), dx(c), dy(d), animation(0) 
 {

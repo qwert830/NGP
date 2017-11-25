@@ -11,6 +11,7 @@ class Projectile
 	float x, y, dx, dy;
 	int animation;
 public:
+	Projectile();
 	Projectile(const float& a, const float& b, const float& c, const float& d);
 
 	void draw();
