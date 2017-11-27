@@ -14,5 +14,6 @@ class Projectile
 public:
 	float x =0 , y = 0, dx = 0, dy = 0;
 	int animation = 0;
+	bool draw = false;
 };
 

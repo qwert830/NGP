@@ -7,9 +7,11 @@
 using namespace std;
 
 list<HANDLE> clientThread;
+HANDLE updateThread;
 int gameStatus = 0; // 0 대기상태 1 게임상태 2 게임종료
 int playerID = 0;
 Character Player[MAX_CLIENT];
+list<Projectile> projList[MAX_CLIENT];
 
 // 소켓 함수 오류 출력 후 종료
 void err_quit(char *msg)
@@ -56,8 +58,8 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	return (len - left);
 }
 
-void Decoding();
-void CreateData();
+void Decoding(ClientAction& CA, int id);
+void CreateData(ServerAction& SA, int id);
 void ServerInit();
 void CreateBullet();
 void CollisionCheck();
@@ -67,6 +69,7 @@ DWORD WINAPI ClientThread(LPVOID arg);
 
 DWORD WINAPI UpdateThread(LPVOID arg)
 {	
+	ServerInit();
 	return 0;
 }
 
@@ -79,28 +82,20 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	char buf[BUFSIZE + 1];
 	int id = playerID++;
 	ZeroMemory(buf, BUFSIZE);
-	/*
-
-	업데이트 함수로
-
-	if (clientThread.size() == MAX_CLIENT)
-	{
-		send(client_sock, (char*)gameStatus, sizeof(int), 0);
-		send(client_sock, (char*)Player, sizeof(Character), 0);
-	}
-	*/
-
-
+	
+	// 기본 데이터 전송
+	CreateData(SA, 0);
+	send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
+	CreateData(SA, 1);
+	send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
+	
 	//통신부분
 	while (1)
 	{
 		recvn(client_sock, buf, BUFSIZE, 0);
 		memcpy(&CA, buf, sizeof(ClientAction));
 		ZeroMemory(buf, BUFSIZE);
-		Player[id].dx = CA.mx;
-		Player[id].dy = CA.my;
-		Player[id].leftClick = CA.leftClick;
-		Player[id].rightClick = CA.rightClick;
+		Decoding(CA, id);
 		/* 
 			이벤트 처리
 		*/
@@ -162,6 +157,8 @@ int main(int argc, char *argv[])
 			clientThread.push_back(new HANDLE(CreateThread(NULL, 0, ClientThread, (LPVOID)client_sock, 0, NULL)));
 			if (clientThread.back() == NULL) { closesocket(client_sock); }
 		}
+		if (clientThread.size() >= MAX_CLIENT)
+			updateThread = new HANDLE(CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL));
 	}
 	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
 		inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
@@ -171,4 +168,49 @@ int main(int argc, char *argv[])
 	// 윈속 종료
 	WSACleanup();
 	return 0;
+}
+
+void Decoding(ClientAction& CA, int id)
+{
+	Player[id].dx = CA.mx;
+	Player[id].dy = CA.my;
+	Player[id].leftClick = CA.leftClick;
+	Player[id].rightClick = CA.rightClick;
+	CA.mx = 0;
+	CA.my = 0;
+	CA.leftClick = false;
+	CA.rightClick = false;
+}
+
+void CreateData(ServerAction& SA, int id)
+{
+	SA.dx = Player[id].dx;
+	SA.dy = Player[id].dy;
+	SA.hp = Player[id].hp;
+	SA.id = id;
+	SA.status = Player[id].status;
+	SA.x = Player[id].x;
+	SA.y = Player[id].y;
+	SA.GameState = gameStatus;
+	int i = 0;
+	for (int n = 0; n < 20; n++)
+	{
+		SA.projectiles[n] = { 0,0,0,0,0,false };
+	}
+	for (auto d : projList[id])
+	{
+		SA.projectiles[i++] = d;
+	}
+}
+
+void ServerInit()
+{
+}
+
+void CreateBullet()
+{
+}
+
+void CollisionCheck()
+{
 }
