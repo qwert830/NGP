@@ -1,5 +1,5 @@
 #include "Base.h"
-#include "Struct.h"
+#include "Server1.h"
 #include "ServerClass.h"
 
 #define SERVERPORT 9000
@@ -8,6 +8,9 @@ using namespace std;
 
 list<HANDLE> clientThread;
 HANDLE updateThread;
+HANDLE cllientEvent;
+HANDLE updateEvent;
+
 int gameStatus = 0; // 0 대기상태 1 게임상태 2 게임종료
 int playerID = 0;
 Character Player[MAX_CLIENT];
@@ -38,7 +41,6 @@ void err_display(char *msg)
 	printf("[%s] %s", msg, (char *)lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
-
 // 사용자 정의 데이터 수신 함수
 int recvn(SOCKET s, char *buf, int len, int flags)
 {
@@ -58,8 +60,7 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	return (len - left);
 }
 
-void Decoding(ClientAction& CA, int id);
-void CreateData(ServerAction& SA, int id);
+
 void ServerInit();
 void CreateBullet();
 void CollisionCheck();
@@ -84,9 +85,9 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	ZeroMemory(buf, BUFSIZE);
 	
 	// 기본 데이터 전송
-	CreateData(SA, 0);
+	CreateData(SA, Player, projList, 0, gameStatus);
 	send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
-	CreateData(SA, 1);
+	CreateData(SA, Player, projList, 1, gameStatus);
 	send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
 	
 	//통신부분
@@ -95,7 +96,7 @@ DWORD WINAPI ClientThread(LPVOID arg)
 		recvn(client_sock, buf, BUFSIZE, 0);
 		memcpy(&CA, buf, sizeof(ClientAction));
 		ZeroMemory(buf, BUFSIZE);
-		Decoding(CA, id);
+		Decoding(CA, Player, id);
 		/* 
 			이벤트 처리
 		*/
@@ -168,39 +169,6 @@ int main(int argc, char *argv[])
 	// 윈속 종료
 	WSACleanup();
 	return 0;
-}
-
-void Decoding(ClientAction& CA, int id)
-{
-	Player[id].dx = CA.mx;
-	Player[id].dy = CA.my;
-	Player[id].leftClick = CA.leftClick;
-	Player[id].rightClick = CA.rightClick;
-	CA.mx = 0;
-	CA.my = 0;
-	CA.leftClick = false;
-	CA.rightClick = false;
-}
-
-void CreateData(ServerAction& SA, int id)
-{
-	SA.dx = Player[id].dx;
-	SA.dy = Player[id].dy;
-	SA.hp = Player[id].hp;
-	SA.id = id;
-	SA.status = Player[id].status;
-	SA.x = Player[id].x;
-	SA.y = Player[id].y;
-	SA.GameState = gameStatus;
-	int i = 0;
-	for (int n = 0; n < 20; n++)
-	{
-		SA.projectiles[n] = { 0,0,0,0,0,false };
-	}
-	for (auto d : projList[id])
-	{
-		SA.projectiles[i++] = d;
-	}
 }
 
 void ServerInit()
