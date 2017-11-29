@@ -62,7 +62,7 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	return (len - left);
 }
 
-Player PC(100, WindowHei / 2, 0, 0, GREEN);
+Player PC1(100, WindowHei / 2, 0, 0, GREEN), PC2(100, 700, 0, 0, RED);
 list<Projectile> p;
 
 bool RDragCheck, LDragCheck;
@@ -92,6 +92,8 @@ char buf[BUFSIZE];
 int retval;
 WSADATA wsa;
 SOCKET sock;
+ServerAction SA1, SA2;
+bool is_start = false;
 
 void GetRecvInfo(SOCKET s, char* buf, ServerAction& sa) {
 	recvn(s, buf, sizeof(ServerAction), 0);
@@ -133,7 +135,6 @@ void main(int argc, char *argv[]) {
 	glutMotionFunc(Drag);
 	glutPassiveMotionFunc(MousePos);
 	glutTimerFunc(GameSpd, TimerFunction, 1);
-
 	glutMainLoop();
 
 	// closesocket()
@@ -149,7 +150,7 @@ GLvoid drawScene(GLvoid) {
 	{
 	case TITLE:
 	{
-		char title[2][21]{ { "VECTOR RUSH" },{ "Game Start : key [1]" }};
+		char title[2][25]{ { "VECTOR RUSH" },{ "WAIT FOR THE GAME START" }};
 		glColor3ub(0, 255, 0);
 		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 - 50);
 		for (char *c = title[0]; *c != '\0'; ++c)
@@ -161,10 +162,11 @@ GLvoid drawScene(GLvoid) {
 		{
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
 		}
+		is_start = true;
 	}
 	break;
 	case PLAY:
-		PC.draw();
+		PC1.draw();
 		for (auto& d : p) {
 			d.draw();
 		}
@@ -181,10 +183,21 @@ GLvoid Reshape(int w, int h) {
 void TimerFunction(int value) {
 	switch (GState)
 	{
+	case TITLE:
+		if (is_start)
+		{
+			GetRecvInfo(sock, buf, SA1);
+			GetRecvInfo(sock, buf, SA2);
+			RDragCheck = false;
+			LDragCheck = false;
+			if (SA1.GameState == 1 && SA2.GameState == 1)
+				GState = PLAY;
+		}
+		break;
 	case PLAY:
-		PC.update(0.01, LDragCheck, RDragCheck);
+		PC1.update(0.01, LDragCheck, RDragCheck);
 
-		if (PC.getStatus() == DEAD) {
+		if (PC1.getStatus() == DEAD) {
 			GState = END;
 		}
 	break;
@@ -198,7 +211,7 @@ void Keyboard(unsigned char key, int x, int y) {
 	case '1':
 		switch (GState) {
 		case TITLE:
-			PC.init(100, WindowHei / 2);
+			PC1.init(100, WindowHei / 2);
 			RDragCheck = false;
 			LDragCheck = false;
 			GState = PLAY;
@@ -231,15 +244,9 @@ void Mouse(int button, int state, int x, int y) {
 }
 
 void MousePos(int x, int y) {
-	if (GState == PLAY) {
-		PC.setDirX(x);
-		PC.setDirY(y);
-	}
+
 }
 
 void Drag(int x, int y) {
-	if (GState == PLAY) {
-		PC.setDirX(x);
-		PC.setDirY(y);
-	}
+
 }

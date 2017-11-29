@@ -10,6 +10,7 @@ class Projectile
 {
 	float x, y, dx, dy;
 	int animation;
+	bool mdraw;
 public:
 	Projectile();
 	Projectile(const float& a, const float& b, const float& c, const float& d);
