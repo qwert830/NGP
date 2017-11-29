@@ -1,5 +1,5 @@
 #pragma once
-#include "ServerClass.h"
+#include "Server2.h"
 #include "Base.h"
 
 using namespace std;

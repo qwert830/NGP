@@ -1,6 +1,6 @@
 #include "Base.h"
 #include "Server1.h"
-#include "ServerClass.h"
+#include "Server2.h"
 
 #define SERVERPORT 9000
 
@@ -8,7 +8,7 @@ using namespace std;
 
 list<HANDLE> clientThread;
 HANDLE updateThread;
-HANDLE cllientEvent;
+HANDLE clientEvent[MAX_CLIENT];
 HANDLE updateEvent;
 
 int gameStatus = 0; // 0 대기상태 1 게임상태 2 게임종료
@@ -61,16 +61,29 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 }
 
 
-void ServerInit();
-void CreateBullet();
-void CollisionCheck();
+
 
 DWORD WINAPI UpdateThread(LPVOID arg);
 DWORD WINAPI ClientThread(LPVOID arg);
 
 DWORD WINAPI UpdateThread(LPVOID arg)
 {	
-	ServerInit();
+	DWORD retval;
+
+	ServerInit(Player);
+	gameStatus = 1;
+	
+	SetEvent(updateEvent);
+
+	while (1)
+	{
+		retval = WaitForMultipleObjects(MAX_CLIENT, clientEvent, TRUE, INFINITE);
+		if (retval != WAIT_OBJECT_0) break;
+
+
+
+	}
+
 	return 0;
 }
 
@@ -79,11 +92,13 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	SOCKET client_sock = (SOCKET)arg;
 	ClientAction CA;
 	ServerAction SA;
-	int retval;
+	DWORD retval;
 	char buf[BUFSIZE + 1];
 	int id = playerID++;
 	ZeroMemory(buf, BUFSIZE);
 	
+	WaitForSingleObject(updateEvent, INFINITE);
+
 	// 기본 데이터 전송
 	CreateData(SA, Player, projList, 0, gameStatus);
 	send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
@@ -97,11 +112,11 @@ DWORD WINAPI ClientThread(LPVOID arg)
 		memcpy(&CA, buf, sizeof(ClientAction));
 		ZeroMemory(buf, BUFSIZE);
 		Decoding(CA, Player, id);
-		/* 
-			이벤트 처리
-		*/
 
-		// 업데이트
+		SetEvent(clientEvent[id]);
+
+		ResetEvent(updateEvent);
+		WaitForSingleObject(updateEvent, INFINITE);
 		
 		// 데이터 전송
 
@@ -140,6 +155,10 @@ int main(int argc, char *argv[])
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
+	clientEvent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
+	clientEvent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
+	updateEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
 	while (1)
 	{
 		// accept()
@@ -157,9 +176,10 @@ int main(int argc, char *argv[])
 		{
 			clientThread.push_back(new HANDLE(CreateThread(NULL, 0, ClientThread, (LPVOID)client_sock, 0, NULL)));
 			if (clientThread.back() == NULL) { closesocket(client_sock); }
+			if (clientThread.size() >= MAX_CLIENT)
+				updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
 		}
-		if (clientThread.size() >= MAX_CLIENT)
-			updateThread = new HANDLE(CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL));
+		
 	}
 	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
 		inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
@@ -171,14 +191,3 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void ServerInit()
-{
-}
-
-void CreateBullet()
-{
-}
-
-void CollisionCheck()
-{
-}

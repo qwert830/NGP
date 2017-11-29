@@ -1,4 +1,5 @@
 #pragma once
+#include "Base.h"
 
 class Character
 {
@@ -16,4 +17,8 @@ public:
 	int animation = 0;
 	bool draw = false;
 };
+
+void ServerInit(Character* player);
+void CreateBullet();
+void CollisionCheck();
 
