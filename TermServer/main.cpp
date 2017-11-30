@@ -79,9 +79,14 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 	{
 		retval = WaitForMultipleObjects(MAX_CLIENT, clientEvent, TRUE, INFINITE);
 		if (retval != WAIT_OBJECT_0) break;
-
-
-
+		ResetEvent(clientEvent[0]);
+		ResetEvent(clientEvent[1]);
+		/*
+		面倒眉农
+		公宏
+		醚舅积己
+		*/
+		SetEvent(updateEvent);
 	}
 
 	return 0;
