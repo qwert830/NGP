@@ -63,9 +63,8 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 }
 
 Player PC1(100, WindowHei / 2, 0, 0, GREEN), PC2(100, 700, 0, 0, RED);
-list<Projectile> p;
+Projectile p1[20], p2[20];
 
-bool RDragCheck, LDragCheck;
 int GState;
 
 
@@ -85,6 +84,8 @@ struct ServerAction {
 struct ClientAction {
 	float mx, my;
 	bool leftClick, rightClick;
+
+	ClientAction() : mx(0), my(0), leftClick(false), rightClick(false) {}
 };
 
 char buf[BUFSIZE];
@@ -93,6 +94,7 @@ int retval;
 WSADATA wsa;
 SOCKET sock;
 ServerAction SA1, SA2;
+ClientAction CA;
 bool is_start = false;
 
 void GetRecvInfo(SOCKET s, char* buf, ServerAction& sa) {
@@ -100,6 +102,16 @@ void GetRecvInfo(SOCKET s, char* buf, ServerAction& sa) {
 	memcpy(&sa, buf, sizeof(ServerAction));
 }
 
+void Decoding(Player& pc, ServerAction& sa, Projectile* p) {
+	pc.setDirX(sa.dx);
+	pc.setDirY(sa.dy);
+	pc.setX(sa.x);
+	pc.setY(sa.y);
+	pc.setCondition(sa.hp, sa.status, 0);
+	for (int i = 0; i < 20; ++i) {
+		p[i] = sa.projectiles[i];
+	}
+}
 
 void main(int argc, char *argv[]) {
 	char SERVERIP[20];
@@ -167,8 +179,10 @@ GLvoid drawScene(GLvoid) {
 	break;
 	case PLAY:
 		PC1.draw();
-		for (auto& d : p) {
-			d.draw();
+		PC2.draw();
+		for (int i = 0; i < 20; ++i) {
+			p1[i].draw();
+			p2[i].draw();
 		}
 		break;
 	}
@@ -188,18 +202,18 @@ void TimerFunction(int value) {
 		{
 			GetRecvInfo(sock, buf, SA1);
 			GetRecvInfo(sock, buf, SA2);
-			RDragCheck = false;
-			LDragCheck = false;
+			Decoding(PC1, SA1, p1);
+			Decoding(PC2, SA2, p2);
 			if (SA1.GameState == 1 && SA2.GameState == 1)
 				GState = PLAY;
 		}
 		break;
 	case PLAY:
-		PC1.update(0.01, LDragCheck, RDragCheck);
-
-		if (PC1.getStatus() == DEAD) {
-			GState = END;
-		}
+		send(sock, (char*)&CA, sizeof(ClientAction), 0);
+		GetRecvInfo(sock, buf, SA1);
+		GetRecvInfo(sock, buf, SA2);
+		Decoding(PC1, SA1, p1);
+		Decoding(PC2, SA2, p2);
 	break;
 	}
 	glutPostRedisplay();
@@ -207,46 +221,36 @@ void TimerFunction(int value) {
 }
 
 void Keyboard(unsigned char key, int x, int y) {
-	switch (key) {
-	case '1':
-		switch (GState) {
-		case TITLE:
-			PC1.init(100, WindowHei / 2);
-			RDragCheck = false;
-			LDragCheck = false;
-			GState = PLAY;
-			break;
-		}
-		break;
-	case '2':
-		break;
-	case '`':
-		exit(0);
-		break;
-	}
+
 }
 
 void Mouse(int button, int state, int x, int y) {
 	if (GState == PLAY) {
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-			RDragCheck = true;
+			CA.leftClick = true;
 		}
 		else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-			RDragCheck = false;
+			CA.leftClick = false;
 		}
 		if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-			LDragCheck = true;
+			CA.rightClick = true;
 		}
 		else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
-			LDragCheck = false;
+			CA.rightClick = false;
 		}
 	}
 }
 
 void MousePos(int x, int y) {
-
+	if (GState == PLAY) {
+		CA.mx = x;
+		CA.my = y;
+	}
 }
 
 void Drag(int x, int y) {
-
+	if (GState == PLAY) {
+		CA.mx = x;
+		CA.my = y;
+	}
 }
