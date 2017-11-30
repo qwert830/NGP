@@ -12,3 +12,6 @@
 
 #define BUFSIZE    1000
 #define MAX_CLIENT 2
+#define PLAYER_SPEED 3
+#define WINDOW_W 800
+#define WINDOW_H 600

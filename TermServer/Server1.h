@@ -20,7 +20,5 @@ struct ClientAction {
 	ClientAction() { mx = 0; my = 0; leftClick = false; rightClick = false; }
 };
 
-DWORD WINAPI ClientThread(LPVOID arg);
-
 void Decoding(ClientAction& CA, Character* player, int id);
 void CreateData(ServerAction& SA, Character* player, list<Projectile>* projList, int id, int gameStatus);

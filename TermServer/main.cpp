@@ -59,10 +59,6 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	}
 	return (len - left);
 }
-
-
-
-
 DWORD WINAPI UpdateThread(LPVOID arg);
 DWORD WINAPI ClientThread(LPVOID arg);
 
@@ -81,6 +77,38 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 		if (retval != WAIT_OBJECT_0) break;
 		ResetEvent(clientEvent[0]);
 		ResetEvent(clientEvent[1]);
+
+		for (int i = 0; i < MAX_CLIENT; i++)
+		{
+			//이동부분
+			if (Player[i].leftClick)
+			{
+				Player[i].x += cos(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED;
+				Player[i].y += sin(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED;
+				if (Player[i].x > WINDOW_W)
+				{
+					Player[i].x = WINDOW_W;
+				}
+				else if (Player[i].x < 0)
+				{
+					Player[i].x = 0;
+				}
+
+				if (Player[i].y > WINDOW_H)
+				{
+					Player[i].y = WINDOW_H;
+				}
+				else if (Player[i].y < 0)
+				{
+					Player[i].y = 0;
+				}
+			}
+			if (Player[i].rightClick)
+			{
+				CreateBullet();
+			}
+		}
+
 		/*
 		충돌체크
 		무브
@@ -113,7 +141,7 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	//통신부분
 	while (1)
 	{
-		recvn(client_sock, buf, BUFSIZE, 0);
+		recvn(client_sock, buf, sizeof(ClientAction), 0);
 		memcpy(&CA, buf, sizeof(ClientAction));
 		ZeroMemory(buf, BUFSIZE);
 		Decoding(CA, Player, id);
@@ -121,9 +149,14 @@ DWORD WINAPI ClientThread(LPVOID arg)
 		SetEvent(clientEvent[id]);
 
 		ResetEvent(updateEvent);
+
 		WaitForSingleObject(updateEvent, INFINITE);
 		
 		// 데이터 전송
+		CreateData(SA, Player, projList, 0, gameStatus);
+		send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
+		CreateData(SA, Player, projList, 1, gameStatus);
+		send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
 
 	}
 	return 0;
