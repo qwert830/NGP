@@ -4,7 +4,7 @@
 #define WindowHei 600
 #define CharaSize 12.0
 #define ProjSize 6.0
-#define GameSpd 50
+#define GameSpd 33
 
 enum GAMESTATE { TITLE, PLAY, END };
 enum PLAYERSTATUS { DEAD, LIVE };

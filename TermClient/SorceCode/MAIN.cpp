@@ -107,7 +107,7 @@ void Decoding(Player& pc, ServerAction& sa, Projectile* p) {
 	pc.setDirY(sa.dy);
 	pc.setX(sa.x);
 	pc.setY(sa.y);
-	pc.setCondition(sa.hp, sa.status, 0);
+	pc.setCondition(sa.hp, sa.status);
 	for (int i = 0; i < 20; ++i) {
 		p[i] = sa.projectiles[i];
 	}
