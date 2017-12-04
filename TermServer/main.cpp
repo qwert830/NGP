@@ -109,7 +109,9 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 			}
 		}
 
+		CollisionCheck();
 		/*
+		CollisionCheck()
 		面倒眉农
 		公宏
 		醚舅积己
