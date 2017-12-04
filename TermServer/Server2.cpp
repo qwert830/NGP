@@ -26,20 +26,15 @@ void CollisionCheck()
 {
 	Character* player;
 	Projectile* projectile;
-	int j;
+	
 	for (int i = 0; i < MAX_CLIENT; i++)
 	{
-		if (i = 0)
+		for (int j = 0; i < 20; i++)
 		{
-			j = 1;
-		}
-		else if (i = 1)
-		{
-			j = 0;
-		}
-		if (projectile[j].x - player[i].x < 5 && projectile[j].x - player[i].x > -5 && projectile[j].y - player[i].y < 5 && projectile[j].y - player[i].y > -5)
-		{
-			player[i].hp -= 15;
+			if (projectile[j].x - player[i].x < 5 && projectile[j].x - player[i].x > -5 && projectile[j].y - player[i].y < 5 && projectile[j].y - player[i].y > -5)
+			{
+				player[i].hp -= 15;
+			}
 		}
 	}
 
