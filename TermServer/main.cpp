@@ -109,7 +109,6 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 			}
 		}
 
-		CollisionCheck();
 		/*
 		충돌체크
 		무브
