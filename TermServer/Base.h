@@ -9,9 +9,16 @@
 #include <string>
 #include <fstream>
 #include <list>
+#include <chrono>
+
+using namespace std;
 
 #define BUFSIZE    1000
 #define MAX_CLIENT 2
-#define PLAYER_SPEED 6
+#define PLAYER_SPEED 150
+#define BULLET_SPEED 150
 #define WINDOW_W 800
 #define WINDOW_H 600
+#define CHARACTER_SIZE 12.0
+#define PROJECTILE_SIZE 6.0
+#define DAMAGE 5
