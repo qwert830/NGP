@@ -114,6 +114,7 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 		무브
 		총알생성
 		*/
+
 		SetEvent(updateEvent);
 	}
 
