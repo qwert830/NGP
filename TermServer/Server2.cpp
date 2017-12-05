@@ -17,27 +17,32 @@ void ServerInit(Character* player)
 	player[1].x = 700;
 }
 
-void CreateBullet()
+void CreateBullet(Character* player, list<Projectile>* bullet, int id)
 {
-
+	bullet[id].push_back(Projectile(player[id].x,player[id].y,player[id].dx-player[id].x,player[id].dy-player[id].y));
 }
 
-void CollisionCheck()
+void CollisionCheck(Character* player, list<Projectile>* bullet)
 {
-	Character* player;
-	Projectile* projectile;
-	
 	for (int i = 0; i < MAX_CLIENT; i++)
 	{
-		for (int j = 0; i < 20; i++)
+		for (auto d = bullet[1 - i].begin(); d != bullet[1-i].end(); ++d)
 		{
-			if (projectile[j].x - player[i].x < 5 && projectile[j].x - player[i].x > -5 && projectile[j].y - player[i].y < 5 && projectile[j].y - player[i].y > -5)
+			if (sqrt(((player[i].x - d->x)*(player[i].x - d->x)) + ((player[i].y - d->y)*(player[i].y - d->y))) <= CHARACTER_SIZE + PROJECTILE_SIZE)
 			{
-				player[i].hp -= 15;
+				player[i].hp -= 5;
+				d = bullet[1 - i].erase(d);
 			}
+			if (d == bullet[1 - i].end())
+				break;
+			if (d->x > WINDOW_W || d->x <0 || d->y > WINDOW_H || d->y < 0)
+			{
+				d = bullet[1 - i].erase(d);
+			}
+			if (d == bullet[1 - i].end())
+				break;
+
 		}
 	}
-
-	
 
 }
