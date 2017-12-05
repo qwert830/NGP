@@ -107,9 +107,13 @@ void Decoding(Player& pc, ServerAction& sa, Projectile* p) {
 	pc.setDirY(sa.dy);
 	pc.setX(sa.x);
 	pc.setY(sa.y);
-	pc.setCondition(sa.hp, sa.status);
+	pc.setCondition(sa.hp, sa.status, 0);
 	for (int i = 0; i < 20; ++i) {
-		p[i] = sa.projectiles[i];
+		p[i].setX(sa.projectiles[i].getX());
+		p[i].setDX(sa.projectiles[i].getDX());
+		p[i].setY(sa.projectiles[i].getY());
+		p[i].setDY(sa.projectiles[i].getDY());
+		p[i].setmDraw(sa.projectiles[i].getmDraw());
 	}
 }
 
@@ -181,7 +185,9 @@ GLvoid drawScene(GLvoid) {
 		PC1.draw();
 		PC2.draw();
 		for (int i = 0; i < 20; ++i) {
+			glColor3ub(0, 255, 0);
 			p1[i].draw();
+			glColor3ub(255, 0, 0);
 			p2[i].draw();
 		}
 		break;
