@@ -10,40 +10,6 @@ Projectile::Projectile(const float& a, const float& b, const float& c, const flo
 {
 }
 
-float Projectile::getX()const {
-	return x;
-}
-float Projectile::getDX()const {
-	return dx;
-}
-float Projectile::getY()const {
-	return y;
-}
-float Projectile::getDY()const {
-	return dy;
-}
-
-bool Projectile::getmDraw()const {
-	return mdraw;
-}
-
-void Projectile::setmDraw(bool smd) {
-	mdraw = smd;
-}
-
-void Projectile::setX(const float sx) {
-	x = sx;
-}
-void Projectile::setDX(const float sdx) {
-	dx = sdx;
-}
-void Projectile::setY(const float sy) {
-	y = sy;
-}
-void Projectile::setDY(const float sdy) {
-	dy = sdy;
-}
-
 void Projectile::draw() {
 	if (mdraw) {
 		glBegin(GL_POLYGON);
@@ -53,8 +19,8 @@ void Projectile::draw() {
 		glEnd();
 		glPushMatrix();
 		glTranslated(x, y, 0);
-		glRotatef(atan2f(dy, dx) * 180 / M_PI, 0, 0, 1);
-		glRotatef(animation = (animation + 6) % 360, 1, 0, 0);
+		glRotatef(atan2f(y - dy, x - dx) * 180 / M_PI, 0, 0, 1);
+		glRotatef(animation = animation + 6 % 360, 1, 0, 0);
 		glTranslated(-x, -y, 0);
 		glBegin(GL_LINES);
 		glVertex2i(x + ProjSize + (ProjSize * 2 * sin(-30 * M_PI / 180)), y + (ProjSize * 2 * cos(-30 * M_PI / 180)));

@@ -2,7 +2,6 @@
 #include "Server1.h"
 #include "Server2.h"
 
-
 #define SERVERPORT 9000
 
 using namespace std;
@@ -14,12 +13,8 @@ HANDLE updateEvent;
 
 int gameStatus = 0; // 0 대기상태 1 게임상태 2 게임종료
 int playerID = 0;
-int accessPlayerCount = 0;
 Character Player[MAX_CLIENT];
 list<Projectile> projList[MAX_CLIENT];
-
-auto preT = chrono::system_clock::now();
-auto curT = chrono::system_clock::now();
 
 // 소켓 함수 오류 출력 후 종료
 void err_quit(char *msg)
@@ -70,7 +65,6 @@ DWORD WINAPI ClientThread(LPVOID arg);
 DWORD WINAPI UpdateThread(LPVOID arg)
 {	
 	DWORD retval;
-	preT = curT = chrono::system_clock::now();
 
 	ServerInit(Player);
 	gameStatus = 1;
@@ -79,9 +73,6 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 
 	while (1)
 	{
-		curT = chrono::system_clock::now();
-		chrono::duration<double> elapsedTime = (curT - preT);
-		preT = curT;
 		retval = WaitForMultipleObjects(MAX_CLIENT, clientEvent, TRUE, INFINITE);
 		if (retval != WAIT_OBJECT_0) break;
 		ResetEvent(clientEvent[0]);
@@ -90,11 +81,10 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 		for (int i = 0; i < MAX_CLIENT; i++)
 		{
 			//이동부분
-			Player[i].atkCool += elapsedTime.count();
 			if (Player[i].leftClick)
 			{
-				Player[i].x += cos(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED * elapsedTime.count();
-				Player[i].y += sin(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED * elapsedTime.count();
+				Player[i].x += cos(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED;
+				Player[i].y += sin(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED;
 				if (Player[i].x > WINDOW_W)
 				{
 					Player[i].x = WINDOW_W;
@@ -113,34 +103,19 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 					Player[i].y = 0;
 				}
 			}
-			for(int j = 0; j<MAX_CLIENT; ++j)
-				for (auto d = projList[j].begin(); d !=projList[j].end(); ++d)
-				{
-					d->x += cos(atan2f(d->dy, d->dx)) * BULLET_SPEED * elapsedTime.count();
-					d->y += sin(atan2f(d->dy, d->dx)) * BULLET_SPEED * elapsedTime.count();
-				}
-			if (Player[i].rightClick && Player[i].atkCool >= 0.5)
+			if (Player[i].rightClick)
 			{
-
-
-				CreateBullet(Player, projList, i);
-				Player[i].atkCool = 0;
-
+				CreateBullet();
 			}
-
-			CollisionCheck(Player, projList, i);
 		}
-		CollisionCheck(Player,projList);
 
+		CollisionCheck();
 		/*
 		충돌체크
 		무브
 		총알생성
 		*/
-
 		SetEvent(updateEvent);
-		if (accessPlayerCount < MAX_CLIENT)
-			break;
 	}
 
 	return 0;
@@ -167,9 +142,7 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	//통신부분
 	while (1)
 	{
-		retval = recvn(client_sock, buf, sizeof(ClientAction), 0);
-		if (retval == SOCKET_ERROR)
-			break;
+		recvn(client_sock, buf, sizeof(ClientAction), 0);
 		memcpy(&CA, buf, sizeof(ClientAction));
 		ZeroMemory(buf, BUFSIZE);
 		Decoding(CA, Player, id);
@@ -182,21 +155,11 @@ DWORD WINAPI ClientThread(LPVOID arg)
 		
 		// 데이터 전송
 		CreateData(SA, Player, projList, 0, gameStatus);
-		retval = send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
-		if (retval == SOCKET_ERROR)
-			break;
+		send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
 		CreateData(SA, Player, projList, 1, gameStatus);
-		retval = send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
-		if (retval == SOCKET_ERROR)
-			break;
+		send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
 
 	}
-	closesocket(client_sock);
-	if (playerID > id)
-	{
-		playerID = id;
-	}
-	accessPlayerCount--;
 	return 0;
 }
 
@@ -248,15 +211,17 @@ int main(int argc, char *argv[])
 		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
 			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
-		if (accessPlayerCount < MAX_CLIENT) // 최대 클라이언트 제한
+		if (clientThread.size() < MAX_CLIENT) // 최대 클라이언트 제한
 		{
 			clientThread.push_back(new HANDLE(CreateThread(NULL, 0, ClientThread, (LPVOID)client_sock, 0, NULL)));
-			accessPlayerCount += 1;
 			if (clientThread.back() == NULL) { closesocket(client_sock); }
+			if (clientThread.size() >= MAX_CLIENT)
+				updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
 		}
-		if (accessPlayerCount >= MAX_CLIENT)
-			updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
+		
 	}
+	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+		inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 	// closesocket()
 	closesocket(listen_sock);
 

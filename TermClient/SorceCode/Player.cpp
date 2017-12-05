@@ -8,8 +8,8 @@ Player::Player()
 
 Player::Player(const float & x, const float & y,
 	const float & dx, const float & dy, const int& clr) :
-	X(x), Y(y), DirX(dx), DirY(dy), speed(3), status(LIVE), HP(100),
-	atkCool(0), color(clr)
+	X(x), Y(y), DirX(dx), DirY(dy), status(LIVE), HP(100),
+	color(clr)
 {
 }
 Player::~Player()
@@ -21,13 +21,12 @@ void Player::init(float initx, float inity) {
 	Y = inity;
 	DirX = X;
 	DirY = Y;
-	setCondition(100, LIVE, 0);
+	setCondition(100, LIVE);
 }
 
-void Player::setCondition(const int& hp, const int& sta, const int& cdn) {
+void Player::setCondition(const int& hp, const int& sta) {
 	HP = hp;
 	status = sta;
-	atkCool = cdn;
 }
 
 float Player::getX() const {
@@ -61,9 +60,6 @@ int Player::getStatus() const {
 }
 int Player::getHP() const {
 	return HP;
-}
-int Player::getAtkCool() const {
-	return atkCool;
 }
 
 
@@ -119,53 +115,5 @@ void Player::draw() {
 		glVertex2i(X + CharaSize / 2 + (CharaSize / 2 * sin(-30 * M_PI / 180)), Y + (CharaSize / 2 * cos(-30 * M_PI / 180)));
 		glEnd();
 		glPopMatrix();
-	}
-}
-
-void Player::update(const float& time,const bool Lclk, const bool Rclk) {
-	if (atkCool > 0)
-		atkCool -= time;
-	if (Rclk) {
-		move();
-	}
-	if (Lclk) {
-		attack();
-	}
-}
-
-void Player::move() {
-	if ((fabsf(DirX - X) > 2 || fabsf(DirY - Y > 2)) && status != DEAD) {
-		X += cos(atan2f(DirY - Y, DirX - X)) * speed;
-		Y += sin(atan2f(DirY - Y, DirX - X)) * speed;
-		if (X < 0) {
-			X = 0;
-		}
-		else if (X > WindowWid) {
-			X = WindowWid;
-		}
-		if (Y < 0) {
-			Y = 0;
-		}
-		else if (Y > WindowHei) {
-			Y = WindowHei;
-		}
-	}
-}
-
-void Player::attack() {
-	if (!atkCool && sqrt((X - DirX)*(X - DirX) + (Y - DirY)*(Y - DirY)) > CharaSize && status != DEAD) {
-		atkCool = 20;
-	}
-}
-
-
-
-void Player::hitChk(const int chkdmg) {
-	if (chkdmg) {
-		HP -= chkdmg;
-		if (HP <= 0) {
-			HP = 0;
-			status = DEAD;
-		}
 	}
 }

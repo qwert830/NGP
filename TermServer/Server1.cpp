@@ -14,7 +14,6 @@ void Decoding(ClientAction& CA, Character* Player, int id)
 
 void CreateData(ServerAction& SA, Character* Player, list<Projectile>* projList, int id, int gameStatus)
 {
-	
 	SA.dx = Player[id].dx;
 	SA.dy = Player[id].dy;
 	SA.hp = Player[id].hp;
@@ -26,12 +25,7 @@ void CreateData(ServerAction& SA, Character* Player, list<Projectile>* projList,
 	int i = 0;
 	for (int n = 0; n < 20; n++)
 	{
-		SA.projectiles[n].animation = 0;
-		SA.projectiles[n].x = 0;
-		SA.projectiles[n].y = 0;
-		SA.projectiles[n].dx = 0;
-		SA.projectiles[n].dy = 0;
-		SA.projectiles[n].draw = false;
+		SA.projectiles[n] = { 0,0,0,0,0,false };
 	}
 	for (auto d : projList[id])
 	{
