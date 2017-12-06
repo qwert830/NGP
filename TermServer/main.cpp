@@ -82,8 +82,12 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 		curT = chrono::system_clock::now();
 		chrono::duration<double> elapsedTime = (curT - preT);
 		preT = curT;
+<<<<<<< HEAD
 		retval = WaitForMultipleObjects(MAX_CLIENT, clientEvent, TRUE, INFINITE);
 		if (retval != WAIT_OBJECT_0) break;
+=======
+
+>>>>>>> 2b6c5518eb242872d5dc6df672fe18c39b7ff00a
 		ResetEvent(clientEvent[0]);
 		ResetEvent(clientEvent[1]);
 
@@ -91,6 +95,10 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 		{
 			//이동부분
 			Player[i].atkCool += elapsedTime.count();
+<<<<<<< HEAD
+=======
+			cout << elapsedTime.count()<<endl;
+>>>>>>> 2b6c5518eb242872d5dc6df672fe18c39b7ff00a
 			if (Player[i].leftClick)
 			{
 				Player[i].x += cos(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED * elapsedTime.count();
@@ -113,12 +121,20 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 					Player[i].y = 0;
 				}
 			}
+<<<<<<< HEAD
 			for(int j = 0; j<MAX_CLIENT; ++j)
 				for (auto d = projList[j].begin(); d !=projList[j].end(); ++d)
 				{
 					d->x += cos(atan2f(d->dy, d->dx)) * BULLET_SPEED * elapsedTime.count();
 					d->y += sin(atan2f(d->dy, d->dx)) * BULLET_SPEED * elapsedTime.count();
 				}
+=======
+			for (auto d = projList[i].begin(); d != projList[i].end(); ++d)
+			{
+				d->x += cos(atan2f(d->dy, d->dx)) * BULLET_SPEED* elapsedTime.count();
+				d->y += sin(atan2f(d->dy, d->dx)) * BULLET_SPEED* elapsedTime.count();
+			}
+>>>>>>> 2b6c5518eb242872d5dc6df672fe18c39b7ff00a
 			if (Player[i].rightClick && Player[i].atkCool >= 0.5)
 			{
 				CreateBullet(Player, projList, i);
@@ -153,22 +169,27 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	CreateData(SA, Player, projList, 1, gameStatus);
 	send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
 	
+	ResetEvent(updateEvent);
 	//통신부분
 	while (1)
 	{
+<<<<<<< HEAD
 		retval = recvn(client_sock, buf, sizeof(ClientAction), 0);
 		if (retval == SOCKET_ERROR)
 			break;
 		memcpy(&CA, buf, sizeof(ClientAction));
 		ZeroMemory(buf, BUFSIZE);
+=======
+		retval = recvn(client_sock, (char*)&CA, sizeof(ClientAction), 0);
+		if (retval == SOCKET_ERROR)
+			break;
+>>>>>>> 2b6c5518eb242872d5dc6df672fe18c39b7ff00a
 		Decoding(CA, Player, id);
-
 		SetEvent(clientEvent[id]);
 
+		WaitForSingleObject(updateEvent, INFINITE);
 		ResetEvent(updateEvent);
 
-		WaitForSingleObject(updateEvent, INFINITE);
-		
 		// 데이터 전송
 		CreateData(SA, Player, projList, 0, gameStatus);
 		retval = send(client_sock, (char*)&SA, sizeof(ServerAction), 0);
@@ -179,13 +200,24 @@ DWORD WINAPI ClientThread(LPVOID arg)
 		if (retval == SOCKET_ERROR)
 			break;
 
+		if (gameStatus == 2)
+			break;
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2b6c5518eb242872d5dc6df672fe18c39b7ff00a
 	closesocket(client_sock);
 	if (playerID > id)
 	{
 		playerID = id;
 	}
 	accessPlayerCount--;
+<<<<<<< HEAD
+=======
+	gameStatus = 2;
+
+>>>>>>> 2b6c5518eb242872d5dc6df672fe18c39b7ff00a
 	return 0;
 }
 
@@ -245,6 +277,13 @@ int main(int argc, char *argv[])
 		}
 		if (accessPlayerCount >= MAX_CLIENT)
 			updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
+<<<<<<< HEAD
+=======
+		if (accessPlayerCount == 0)
+		{
+			clientThread.clear();
+		}
+>>>>>>> 2b6c5518eb242872d5dc6df672fe18c39b7ff00a
 	}
 	// closesocket()
 	closesocket(listen_sock);
