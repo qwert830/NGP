@@ -118,27 +118,32 @@ void Decoding(Player& pc, ServerAction& sa, Projectile* p) {
 }
 
 void main(int argc, char *argv[]) {
-	char SERVERIP[20];
-	cout << "IP林家 : ";
-	cin >> SERVERIP;
-
 	// 扩加 檬扁拳
-	
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return;
-
 	// socket()
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET) err_quit("socket()");
 
-	// connect()
-	SOCKADDR_IN serveraddr;
-	ZeroMemory(&serveraddr, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
-	serveraddr.sin_port = htons(SERVERPORT);
-	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR) err_quit("connect()");
+	char SERVERIP[20];
+		SOCKADDR_IN serveraddr;
+
+	while (1) {
+		cout << "IP林家 : ";
+		cin >> SERVERIP;
+		// connect()
+		ZeroMemory(&serveraddr, sizeof(serveraddr));
+		serveraddr.sin_family = AF_INET;
+		serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+		serveraddr.sin_port = htons(SERVERPORT);
+		retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+		if (retval == SOCKET_ERROR) {
+			err_display("connect()");
+		}
+		else
+			break;
+	}
+	
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
@@ -166,15 +171,16 @@ GLvoid drawScene(GLvoid) {
 	{
 	case TITLE:
 	{
-		char title[2][25]{ { "VECTOR RUSH" },{ "WAIT FOR THE GAME START" }};
+		char title1[] = "VECTOR RUSH";
+		char title2[] = "WAIT FOR THE GAME START";
 		glColor3ub(0, 255, 0);
 		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 - 50);
-		for (char *c = title[0]; *c != '\0'; ++c)
+		for (char *c = title1; *c != '\0'; ++c)
 		{
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
 		}
 		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
-		for (char *c = title[1]; *c != '\0'; ++c)
+		for (char *c = title2; *c != '\0'; ++c)
 		{
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
 		}
@@ -189,6 +195,21 @@ GLvoid drawScene(GLvoid) {
 			p1[i].draw();
 			glColor3ub(255, 0, 0);
 			p2[i].draw();
+		}
+		break;
+	case END:
+		char end1[] = "VECTOR RUSH";
+		char end2[] = "WAIT FOR THE GAME START";
+		glColor3ub(0, 255, 0);
+		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 - 50);
+		for (char *c = end1; *c != '\0'; ++c)
+		{
+			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
+		}
+		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
+		for (char *c = end2; *c != '\0'; ++c)
+		{
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
 		}
 		break;
 	}
@@ -206,8 +227,8 @@ void TimerFunction(int value) {
 	case TITLE:
 		if (is_start)
 		{
-			GetRecvInfo(sock, buf, SA1);
-			GetRecvInfo(sock, buf, SA2);
+			recvn(sock, (char*)&SA1, sizeof(ServerAction), 0);
+			recvn(sock, (char*)&SA2, sizeof(ServerAction), 0);
 			Decoding(PC1, SA1, p1);
 			Decoding(PC2, SA2, p2);
 			if (SA1.GameState == 1 && SA2.GameState == 1)
@@ -216,8 +237,8 @@ void TimerFunction(int value) {
 		break;
 	case PLAY:
 		send(sock, (char*)&CA, sizeof(ClientAction), 0);
-		GetRecvInfo(sock, buf, SA1);
-		GetRecvInfo(sock, buf, SA2);
+		recvn(sock, (char*)&SA1, sizeof(ServerAction), 0);
+		recvn(sock, (char*)&SA2, sizeof(ServerAction), 0);
 		Decoding(PC1, SA1, p1);
 		Decoding(PC2, SA2, p2);
 	break;
