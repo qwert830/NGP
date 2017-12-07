@@ -6,10 +6,6 @@ void Decoding(ClientAction& CA, Character* Player, int id)
 	Player[id].dy = CA.my;
 	Player[id].leftClick = CA.leftClick;
 	Player[id].rightClick = CA.rightClick;
-	CA.mx = 0;
-	CA.my = 0;
-	CA.leftClick = false;
-	CA.rightClick = false;
 }
 
 void CreateData(ServerAction& SA, Character* Player, list<Projectile>* projList, int id, int gameStatus)
