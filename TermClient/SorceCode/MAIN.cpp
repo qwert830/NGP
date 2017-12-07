@@ -126,7 +126,7 @@ void main(int argc, char *argv[]) {
 	if (sock == INVALID_SOCKET) err_quit("socket()");
 
 	char SERVERIP[20];
-		SOCKADDR_IN serveraddr;
+	SOCKADDR_IN serveraddr;
 
 	while (1) {
 		cout << "IPÁÖ¼Ò : ";
@@ -143,7 +143,7 @@ void main(int argc, char *argv[]) {
 		else
 			break;
 	}
-	
+
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
@@ -198,8 +198,8 @@ GLvoid drawScene(GLvoid) {
 		}
 		break;
 	case END:
-		char end1[] = "VECTOR RUSH";
-		char end2[] = "WAIT FOR THE GAME START";
+		char end1[] = "GAME OVER";
+		char end2[] = "GG";
 		glColor3ub(0, 255, 0);
 		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 - 50);
 		for (char *c = end1; *c != '\0'; ++c)
@@ -236,12 +236,12 @@ void TimerFunction(int value) {
 		}
 		break;
 	case PLAY:
-		send(sock, (char*)&CA, sizeof(ClientAction), 0);
+
 		recvn(sock, (char*)&SA1, sizeof(ServerAction), 0);
 		recvn(sock, (char*)&SA2, sizeof(ServerAction), 0);
 		Decoding(PC1, SA1, p1);
 		Decoding(PC2, SA2, p2);
-	break;
+		break;
 	}
 	glutPostRedisplay();
 	glutTimerFunc(GameSpd, TimerFunction, 1);
@@ -265,6 +265,7 @@ void Mouse(int button, int state, int x, int y) {
 		else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
 			CA.rightClick = false;
 		}
+		send(sock, (char*)&CA, sizeof(ClientAction), 0);
 	}
 }
 
@@ -272,6 +273,7 @@ void MousePos(int x, int y) {
 	if (GState == PLAY) {
 		CA.mx = x;
 		CA.my = y;
+		send(sock, (char*)&CA, sizeof(ClientAction), 0);
 	}
 }
 
@@ -279,5 +281,6 @@ void Drag(int x, int y) {
 	if (GState == PLAY) {
 		CA.mx = x;
 		CA.my = y;
+		send(sock, (char*)&CA, sizeof(ClientAction), 0);
 	}
 }
