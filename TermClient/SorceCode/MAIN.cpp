@@ -9,6 +9,7 @@
 #include <vector>
 #include "../Header/DEFINE.h"
 #include "../Header/Player.h"
+#include <string>
 using namespace std;
 
 GLvoid drawScene(GLvoid);
@@ -199,17 +200,28 @@ GLvoid drawScene(GLvoid) {
 		break;
 	case END:
 		char end1[] = "GAME OVER";
-		char end2[] = "GG";
+		char end2[] = "GREEN WIN";
+		char end3[] = "RED WIN";
+
 		glColor3ub(0, 255, 0);
 		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 - 50);
 		for (char *c = end1; *c != '\0'; ++c)
 		{
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
 		}
-		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
-		for (char *c = end2; *c != '\0'; ++c)
-		{
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+		if (PC1.getHP() > PC2.getHP()) {
+			glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
+			for (char *c = end2; *c != '\0'; ++c)
+			{
+				glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+			}
+		}
+		else {
+			glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
+			for (char *c = end3; *c != '\0'; ++c)
+			{
+				glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+			}
 		}
 		break;
 	}
@@ -231,18 +243,22 @@ void TimerFunction(int value) {
 			recvn(sock, (char*)&SA2, sizeof(ServerAction), 0);
 			Decoding(PC1, SA1, p1);
 			Decoding(PC2, SA2, p2);
-			if (SA1.GameState == 1 && SA2.GameState == 1)
-				GState = PLAY;
 		}
 		break;
 	case PLAY:
-
+		recvn(sock, (char*)&SA1, sizeof(ServerAction), 0);
+		recvn(sock, (char*)&SA2, sizeof(ServerAction), 0);
+		Decoding(PC1, SA1, p1);
+		Decoding(PC2, SA2, p2);
+		break;
+	case END:
 		recvn(sock, (char*)&SA1, sizeof(ServerAction), 0);
 		recvn(sock, (char*)&SA2, sizeof(ServerAction), 0);
 		Decoding(PC1, SA1, p1);
 		Decoding(PC2, SA2, p2);
 		break;
 	}
+	GState = SA1.GameState;
 	glutPostRedisplay();
 	glutTimerFunc(GameSpd, TimerFunction, 1);
 }
