@@ -80,7 +80,6 @@ DWORD WINAPI SendThread(LPVOID arg)
 		chrono::duration<double> elapsedTime = (curTime - preTime);
 		if (elapsedTime.count() > updateTime)
 		{
-			cout << elapsedTime.count() << endl;
 			preTime = curTime;
 			// 데이터 전송
 			CreateData(SA, Player, projList, 0, gameStatus);
@@ -93,6 +92,13 @@ DWORD WINAPI SendThread(LPVOID arg)
 				break;
 		}
 	}
+
+	accessPlayerCount -= 1;
+	if (accessPlayerCount < 0)
+		accessPlayerCount = 0;
+	
+	gameStatus = 2;
+
 	return 0;
 }
 
@@ -155,11 +161,20 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 			}
 			CollisionCheck(Player, projList);
 
+			if (Player[0].hp <= 0 || Player[1].hp <= 0)
+			{
+				gameStatus = 2;
+				Sleep(1000);
+				updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
+				break;
+			}
 			SetEvent(updateEvent);
 		}
 		if (accessPlayerCount < MAX_CLIENT)
 			break;
 	}
+
+	ResetEvent(updateEvent);
 
 	return 0;
 }
@@ -191,7 +206,7 @@ DWORD WINAPI ClientThread(LPVOID arg)
 			break;
 		Decoding(CA, Player, id);
 
-		if (accessPlayerCount < MAX_CLIENT)
+		if (accessPlayerCount == 0)
 			break;
 	}
 	closesocket(client_sock);
@@ -199,7 +214,6 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	{
 		playerID = id;
 	}
-	accessPlayerCount--;
 	return 0;
 }
 
@@ -255,10 +269,10 @@ int main(int argc, char *argv[])
 		{
 			clientThread.push_back(new HANDLE(CreateThread(NULL, 0, ClientThread, (LPVOID)client_sock, 0, NULL)));
 			accessPlayerCount += 1;
-			if (clientThread.back() == NULL) { closesocket(client_sock); }
+
+			if (accessPlayerCount >= MAX_CLIENT)
+				updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
 		}
-		if (accessPlayerCount >= MAX_CLIENT)
-			updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
 	}
 	// closesocket()
 	closesocket(listen_sock);
