@@ -9,7 +9,6 @@ using namespace std;
 
 list<HANDLE> clientThread;
 HANDLE updateThread;
-HANDLE clientEvent[MAX_CLIENT];
 HANDLE updateEvent;
 
 int gameStatus = 0; // 0 대기상태 1 게임상태 2 게임종료
@@ -106,9 +105,9 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 {	
 	DWORD retval;
 	preT = curT = chrono::system_clock::now();
-	float updateTime = 1.0f/60.0f;
+	float updateTime = 1.0f/30.0f;
 	
-	ServerInit(Player);
+	ServerInit(Player,projList);
 	gameStatus = 1;
 	
 	SetEvent(updateEvent);
@@ -125,10 +124,19 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 			{
 				//이동부분
 				Player[i].atkCool += elapsedTime.count();
-				if (Player[i].leftClick)
+				if (Player[i].leftClick
+					&& sqrt(((Player[i].x - Player[i].dx)*(Player[i].x - Player[i].dx)) + ((Player[i].y - Player[i].dy)*(Player[i].y - Player[i].dy)) >= CHARACTER_SIZE))
 				{
-					Player[i].x += cos(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED * elapsedTime.count();
-					Player[i].y += sin(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED * elapsedTime.count();
+					if (Player[i].atkCool <= 0.55)
+					{
+						Player[i].x += cos(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * ATK_SPEED * elapsedTime.count();
+						Player[i].y += sin(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * ATK_SPEED * elapsedTime.count();
+					}
+					else {
+						Player[i].x += cos(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED * elapsedTime.count();
+						Player[i].y += sin(atan2f(Player[i].dy - Player[i].y, Player[i].dx - Player[i].x)) * PLAYER_SPEED * elapsedTime.count();
+					}
+					
 					if (Player[i].x > WINDOW_W)
 					{
 						Player[i].x = WINDOW_W;
@@ -153,7 +161,8 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 						d->x += cos(atan2f(d->dy, d->dx)) * BULLET_SPEED * elapsedTime.count();
 						d->y += sin(atan2f(d->dy, d->dx)) * BULLET_SPEED * elapsedTime.count();
 					}
-				if (Player[i].rightClick && Player[i].atkCool >= 0.5)
+				if (Player[i].rightClick && Player[i].atkCool >= 0.5
+					&& sqrt(((Player[i].x - Player[i].dx)*(Player[i].x - Player[i].dx)) + ((Player[i].y - Player[i].dy)*(Player[i].y - Player[i].dy)) >= CHARACTER_SIZE))
 				{
 					CreateBullet(Player, projList, i);
 					Player[i].atkCool = 0;
@@ -164,7 +173,7 @@ DWORD WINAPI UpdateThread(LPVOID arg)
 			if (Player[0].hp <= 0 || Player[1].hp <= 0)
 			{
 				gameStatus = 2;
-				Sleep(1000);
+				Sleep(5000);
 				updateThread = CreateThread(NULL, 0, UpdateThread, NULL, 0, NULL);
 				break;
 			}
@@ -185,9 +194,8 @@ DWORD WINAPI ClientThread(LPVOID arg)
 	ClientAction CA;
 	ServerAction SA;
 	DWORD retval;
-	char buf[BUFSIZE + 1];
+
 	int id = playerID++;
-	ZeroMemory(buf, BUFSIZE);
 	
 	WaitForSingleObject(updateEvent, INFINITE);
 
@@ -248,8 +256,6 @@ int main(int argc, char *argv[])
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 
-	clientEvent[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
-	clientEvent[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
 	updateEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	while (1)

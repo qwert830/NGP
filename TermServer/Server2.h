@@ -18,10 +18,10 @@ public:
 	bool draw;
 
 	Projectile() : x(0), y(0), dx(0), dy(0), animation(0), draw(false) {}
-	Projectile(int px, int py, int pdx, int pdy) : x(px), y(py), dx(pdx), dy(pdy), draw(true) {}
+	Projectile(float px, float py, float pdx, float pdy) : x(px), y(py), dx(pdx), dy(pdy), draw(true) {}
 };
 
-void ServerInit(Character* player);
+void ServerInit(Character* player,list<Projectile>* bullet);
 void CreateBullet(Character* player, list<Projectile>* bullet, int id);
 void CollisionCheck(Character* player ,list<Projectile>* bullet);
 

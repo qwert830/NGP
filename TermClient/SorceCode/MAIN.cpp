@@ -6,10 +6,8 @@
 #include "../glut/glut.h"
 #define _USE_MATH_DEFINES
 #include <list>
-#include <vector>
 #include "../Header/DEFINE.h"
 #include "../Header/Player.h"
-#include <string>
 using namespace std;
 
 GLvoid drawScene(GLvoid);
@@ -149,7 +147,7 @@ void main(int argc, char *argv[]) {
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WindowWid, WindowHei);
-	glutCreateWindow("Proj : MSG(Added Replay)");
+	glutCreateWindow("VECTOR RUSH : Multiplay");
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
@@ -173,15 +171,21 @@ GLvoid drawScene(GLvoid) {
 	case TITLE:
 	{
 		char title1[] = "VECTOR RUSH";
-		char title2[] = "WAIT FOR THE GAME START";
+		char title2[] = "Waiting for other player connection";
+		char title3[] = "YOUR COLOR IS GREEN";
 		glColor3ub(0, 255, 0);
 		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 - 50);
 		for (char *c = title1; *c != '\0'; ++c)
 		{
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
 		}
-		glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
+		glRasterPos2f(WindowWid / 2 - 150, WindowHei / 2);
 		for (char *c = title2; *c != '\0'; ++c)
+		{
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+		}
+		glRasterPos2f(WindowWid / 2 - 125, WindowHei / 2 + 50);
+		for (char *c = title3; *c != '\0'; ++c)
 		{
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
 		}
@@ -210,6 +214,7 @@ GLvoid drawScene(GLvoid) {
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
 		}
 		if (PC1.getHP() > PC2.getHP()) {
+			glColor3ub(0, 255, 0);
 			glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
 			for (char *c = end2; *c != '\0'; ++c)
 			{
@@ -217,6 +222,7 @@ GLvoid drawScene(GLvoid) {
 			}
 		}
 		else {
+			glColor3ub(255, 0, 0);
 			glRasterPos2f(WindowWid / 2 - 100, WindowHei / 2 + 50);
 			for (char *c = end3; *c != '\0'; ++c)
 			{
@@ -252,6 +258,13 @@ void TimerFunction(int value) {
 		Decoding(PC2, SA2, p2);
 		break;
 	case END:
+		CA.leftClick = false;
+		CA.rightClick = false;
+		send(sock, (char*)&CA, sizeof(ClientAction), 0);
+		for (int i = 0; i < 20; ++i) {
+			p1[i].setmDraw(false);
+			p2[i].setmDraw(false);
+		}
 		recvn(sock, (char*)&SA1, sizeof(ServerAction), 0);
 		recvn(sock, (char*)&SA2, sizeof(ServerAction), 0);
 		Decoding(PC1, SA1, p1);

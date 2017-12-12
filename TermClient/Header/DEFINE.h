@@ -1,9 +1,9 @@
 #pragma once
 
-#define WindowWid 800
-#define WindowHei 600
-#define CharaSize 12.0
-#define ProjSize 6.0
+#define WindowWid 1200
+#define WindowHei 800
+#define CharaSize 14.0
+#define ProjSize 7.0
 #define GameSpd 20
 
 enum GAMESTATE { TITLE, PLAY, END };
